@@ -1,10 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <title>Оставить заявку</title>
+    <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
-$END$
+
+<nav>
+    <ul>
+        <li><a href="/">Главная</a></li>
+        <li><a href="/apply">Оставить заявку</a></li>
+        <li><a href="/contact">Контакты</a></li>
+    </ul>
+</nav>
+
+<div class="form-container">
+    <h2>Заявка на подключение к интернету</h2>
+    <form action="/submit-application" method="post">
+        <label for="name">Имя:</label>
+        <input type="text" id="name" name="name" required>
+
+        <label for="city">Город:</label>
+        <input type="text" id="city" name="city" required>
+
+        <label for="house">Дом:</label>
+        <input type="text" id="house" name="house" required>
+
+        <label for="street">Улица:</label>
+        <input type="text" id="street" name="street" required>
+
+        <label for="phone">Номер телефона:</label>
+        <input type="text" id="phone" name="phone" required>
+
+        <label for="tariff">Выберите тариф:</label>
+        <select id="tariff" name="tariff" required>
+            <option value="BASIC">Базовый</option>
+            <option value="STANDARD">Стандарт</option>
+            <option value="PREMIUM">Премиум</option>
+        </select>
+
+        <button type="submit">Отправить заявку</button>
+
+        <div th:if="${message != null}">
+            <p th:text="${message}" th:style ="'color:'+ ${color}"> </p>
+        </div>
+    </form>
+</div>
+
 </body>
 </html>

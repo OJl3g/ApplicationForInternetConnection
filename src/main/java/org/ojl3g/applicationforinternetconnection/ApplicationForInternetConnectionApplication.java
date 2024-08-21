@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class ApplicationForInternetConnectionApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(ApplicationForInternetConnectionApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(ApplicationForInternetConnectionApplication.class, args);
+    }
 
 }
