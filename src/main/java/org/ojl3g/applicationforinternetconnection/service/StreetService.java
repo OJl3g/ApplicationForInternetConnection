@@ -14,7 +14,11 @@ public class StreetService {
         this.streetRepository = streetRepository;
     }
 
-    public List<Street> getAllStreet() {
-        return streetRepository.findAll();
+//    public List<Street> getStreetByIdCity() {
+//        return streetRepository.findAll();
+//    }
+
+    public List<Street> getStreetByIdCity(Long id) {
+        return streetRepository.findAllByCity_Id(id);
     }
 }

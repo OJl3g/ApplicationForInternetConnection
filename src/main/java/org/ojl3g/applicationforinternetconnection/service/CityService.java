@@ -19,4 +19,8 @@ public class CityService {
 
     }
 
+    public City getCityByName(String cityNAme) {
+        return cityRepository.findByName(cityNAme);
+    }
+
 }

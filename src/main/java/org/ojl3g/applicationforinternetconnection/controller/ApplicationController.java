@@ -1,16 +1,15 @@
 package org.ojl3g.applicationforinternetconnection.controller;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import lombok.Data;
+import org.ojl3g.applicationforinternetconnection.model.Application;
 import org.ojl3g.applicationforinternetconnection.model.City;
 import org.ojl3g.applicationforinternetconnection.model.Street;
+import org.ojl3g.applicationforinternetconnection.repository.ApplicationRepository;
+import org.ojl3g.applicationforinternetconnection.service.ApplicationService;
 import org.ojl3g.applicationforinternetconnection.service.CityService;
 import org.ojl3g.applicationforinternetconnection.service.StreetService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,13 +21,21 @@ import java.util.Optional;
 @Controller
 public class ApplicationController {
 
+    private ApplicationService applicationService;
+
     private static final Logger log = LoggerFactory.getLogger(ApplicationController.class);
     private final CityService cityService;
     private final StreetService streetService;
+    private final ApplicationRepository applicationRepository;
 
-    public ApplicationController(CityService cityService, StreetService streetService) {
+    public ApplicationController(CityService cityService,
+                                 StreetService streetService,
+                                 ApplicationRepository applicationRepository,
+                                 ApplicationService applicationService) {
         this.cityService = cityService;
         this.streetService = streetService;
+        this.applicationRepository = applicationRepository;
+        this.applicationService = new ApplicationService(applicationRepository);
     }
 
 
@@ -37,7 +44,7 @@ public class ApplicationController {
         return "index";
     }
 
-    @GetMapping(value = "apply")
+    @GetMapping(value = "/apply")
     public String apply() {
         return "addApplication";
     }
@@ -56,38 +63,57 @@ public class ApplicationController {
             @RequestParam String street,
             @RequestParam String phone,
             @RequestParam String tariff,
-            Model model) {
+            Model model)
+    {
 
-
+        //получение всех городов из базы данных
         List<City> allCity = cityService.getAllCity();
-        Optional<City> first = allCity.stream()
+
+        //проверка есть ои город который ввел пользователь через фильтр
+        //если города нет то Optional будет пустой
+        Optional<City> cityOptional = allCity.stream()
                 .filter(c -> city.equalsIgnoreCase(c.getName()))
                 .findFirst();
-        log.info(allCity.toString());
-        log.info(first.toString());
 
-        if (first.isPresent()) {
-            model.addAttribute("message", "Ваша заявка принята");
-            model.addAttribute("color", "green");
-        } else { //возможно этот  else перенести в самый низ ?
-            model.addAttribute("message", "Ваш город не обслуживается");
+        //если Optional пустой вернуть на ту же страницу с сообщением
+        if (!cityOptional.isPresent()) {
+            model.addAttribute("message", "ваш город не обслуживается");
             model.addAttribute("color", "red");
+            return "addApplication";
         }
 
-        List<Street> allStreet = streetService.getAllStreet();
-        Optional<Street> first1 = allStreet.stream()
-                .filter(c -> street.equalsIgnoreCase(c.getStreetName()))
-                .findFirst();
-        log.info(allStreet.toString());
-        log.info(first1.toString());
+        //если же город не пустой то получаем его
+        City city1 = cityOptional.get();
+        boolean streetInCity = false;
 
-        if (first1.isPresent()) {
-            model.addAttribute("message", "Ваша заявка принята");
-            model.addAttribute("color", "green");
-        } else {
-            model.addAttribute("message", "Ваша улица не обслуживается");
-            model.addAttribute("color", "red");
+        //проверка что в городе есть улица которую ввел пользователь
+        List<Street> streets = city1.getStreets();
+        for (Street streetObject : streets) {
+            if (streetObject.getStreetName().equalsIgnoreCase(street)) {
+                streetInCity = true;
+                break;
+            }
         }
+
+        //если не находит улицу в городе вернуть те же страницу с сообщением
+        if (!streetInCity) {
+            model.addAttribute("message", "ваша улица не обслуживается");
+            model.addAttribute("color", "red");
+            return "addApplication";
+        }
+
+
+        //если город и улица найдены в базе данных добавляем заявку в бд
+        model.addAttribute("message", "Ваша заявка принята");
+        model.addAttribute("color", "green");
+        Application application = new Application();
+        application.setName(name);
+        application.setCity(city);
+        application.setHouse(house);
+        application.setStreet(street);
+        application.setPhone(phone);
+        application.setTariff(tariff);
+        applicationService.saveApplication(application);
 
         return "addApplication";
     }
